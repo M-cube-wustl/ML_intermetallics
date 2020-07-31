@@ -33,6 +33,10 @@ def ternary_alloy_systems():
     return sorted(["{}-{}-{}".format(*sorted(triple))
                    for triple in itertools.product(first_el, second_el,third_el)])
 
+## Add any other properties you are interested in
 df_binary_all = mpdr.get_dataframe({'chemsys': {'$in': binary_alloy_systems()}}, ['material_id','pretty_formula', 'e_above_hull','formation_energy_per_atom',
                                                                               'is_ordered'])
+## Filter out ordered intermetallic compounds that are on convex hull
 df_binary = df_binary_all.loc[(df_binary_all['e_above_hull']==0)&df_binary_all['is_ordered']==True]
+## Save to csv file
+df_binary.to_csv('../Datasets/binary_intermetallics.csv')
