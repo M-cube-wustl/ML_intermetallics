@@ -33,4 +33,26 @@ def missing_values_table(df):
         # Return the dataframe with missing information
         return mis_val_table_ren_columns
 
-df_binary = pd.read_csv('../Datasets/Binary_intermetallics.csv',)
+##read data
+df_binary = pd.read_csv('../Datasets/Binary_intermetallics.csv')
+df_el = pd.read_csv('../Datasets/metallic_elements.csv')
+unwanted_columns = ['e_above_hull','energy_per_atom']
+df_binary = df_binary.drop(unwanted_columns, axis=1)
+df_el = df_el.drop(unwanted_columns, axis=1)
+
+##transfer fomula to chemical compositions
+from matminer.utils.conversions import str_to_composition
+df_binary['composition'] = df_binary['pretty_formula'].transform(str_to_composition)
+df_el['composition'] = df_el['pretty_formula'].transform(str_to_composition)
+
+##featurization with elemental properties
+from matminer.featurizers.composition import ElementProperty
+## From magpie import CovalentRadius, BulkModulus, AtomicVolume, Cohesive_Energy(custom created) and MendeleevNumber...
+features_1= ["NValence","Cohesive_Energy",'FirstIonizationEnergy','Electronegativity']
+ep_feat_1 = ElementProperty(data_source="magpie", features=features_1 ,stats=["maximum","minimum","mean","mean_dev"])
+df_binary = ep_feat_1.featurize_dataframe(df_binary, col_id="composition")  # input the "composition" column to the featurizer
+df_el = ep_feat_1.featurize_dataframe(df_el, col_id="composition")  # input the "composition" column to the featurizer
+
+##check for missing value
+missing_values_table(df_binary)
+missing_values_table(df_el)
